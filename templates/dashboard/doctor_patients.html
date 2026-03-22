@@ -1,0 +1,184 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <a href="{% url 'doctor_dashboard' %}" class="text-decoration-none text-muted small mb-2 d-inline-block">
+                <i class="fa-solid fa-arrow-left me-1"></i> Back to Dashboard
+            </a>
+            <h2 class="fw-bold text-dark">My Patients Directory</h2>
+            <p class="text-muted">View histories and upcoming schedules.</p>
+        </div>
+        
+        <div class="bg-white p-2 rounded-pill shadow-sm border" style="width: 300px;">
+            <div class="input-group">
+                <span class="input-group-text bg-transparent border-0"><i class="fa-solid fa-search text-muted"></i></span>
+                <input type="text" class="form-control border-0 shadow-none bg-transparent" placeholder="Search by name...">
+            </div>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light text-uppercase small text-muted fw-bold">
+                        <tr>
+                            <th class="ps-4 py-3">Patient Profile</th>
+                            <th>Status</th>
+                            <th>Appointment Details</th>
+                            <th>Contact</th>
+                            <th class="text-end pe-4">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for patient in patients %}
+                        <tr>
+                            <td class="ps-4 py-3">
+                                <div class="d-flex align-items-center">
+                                    {% if patient.profile_picture %}
+                                        <img src="{{ patient.profile_picture.url }}" class="rounded-circle me-3 shadow-sm" width="45" height="45" style="object-fit: cover;">
+                                    {% else %}
+                                        <div class="rounded-circle bg-light text-secondary d-flex align-items-center justify-content-center me-3 shadow-sm" style="width: 45px; height: 45px;">
+                                            <i class="fa-solid fa-user"></i>
+                                        </div>
+                                    {% endif %}
+                                    <div>
+                                        <span class="fw-bold text-dark d-block" style="font-size: 1rem;">{{ patient.get_full_name|default:patient.username }}</span>
+                                        <small class="text-muted">ID: #{{ patient.id }}</small>
+                                    </div>
+                                </div>
+                            </td>
+
+                            <td>
+                                <span class="badge bg-{{ patient.status_color }} bg-opacity-10 text-{{ patient.status_color }} px-3 py-2 rounded-pill fw-bold" style="font-size: 0.75rem; border: 1px solid var(--bs-{{ patient.status_color }});">
+                                    {% if patient.appt_status == 'Today' %}
+                                        <i class="fa-regular fa-bell me-1"></i> TODAY
+                                    {% elif patient.appt_status == 'Upcoming' %}
+                                        <i class="fa-regular fa-calendar-check me-1"></i> UPCOMING
+                                    {% else %}
+                                        <i class="fa-solid fa-clock-rotate-left me-1"></i> HISTORY
+                                    {% endif %}
+                                </span>
+                            </td>
+
+                            <td>
+                                {% if patient.display_appt %}
+                                    <div class="d-flex align-items-center">
+                                        <div class="me-3 text-center bg-white rounded-3 p-2 border shadow-sm" style="min-width: 60px;">
+                                            <small class="d-block text-uppercase fw-bold text-danger" style="font-size: 0.7rem; letter-spacing: 1px;">{{ patient.display_appt.date|date:"M" }}</small>
+                                            <span class="d-block fw-bold text-dark fs-4" style="line-height: 1;">{{ patient.display_appt.date|date:"d" }}</span>
+                                        </div>
+                                        <div>
+                                            <span class="d-block fw-bold text-dark" style="font-size: 0.9rem;">{{ patient.display_appt.date|date:"l, Y" }}</span>
+                                            <span class="text-muted small fw-bold">
+                                                <i class="fa-regular fa-clock me-1 text-primary"></i> {{ patient.display_appt.time|time:"H:i" }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                {% else %}
+                                    <span class="text-muted small">No records found</span>
+                                {% endif %}
+                            </td>
+
+                            <td>
+                                <span class="fw-medium text-dark" style="font-family: 'Courier New', monospace; font-size: 0.95rem;">{{ patient.phone_number|default:"--" }}</span>
+                            </td>
+
+                            <td class="text-end pe-4">
+                                <div class="d-flex justify-content-end gap-2">
+                                    {% if patient.display_appt %}
+                                        
+                                        {% if patient.display_appt.meeting_link %}
+                                            {% if patient.display_appt.status == 'pending' or patient.display_appt.status == 'scheduled' %}
+                                                <a href="{{ patient.display_appt.meeting_link }}" target="_blank" class="btn btn-sm btn-primary rounded-pill px-3 shadow-sm" title="Join Video Call">
+                                                    <i class="fa-solid fa-video"></i>
+                                                </a>
+                                            {% endif %}
+                                        {% endif %}
+
+                                        {% if patient.display_appt.status == 'pending' or patient.display_appt.status == 'scheduled' %}
+                                            <a href="{% url 'complete_appointment' patient.display_appt.id %}" class="btn btn-sm btn-success rounded-pill px-3 shadow-sm" title="Mark Completed">
+                                                <i class="fa-solid fa-check"></i>
+                                            </a>
+                                        {% endif %}
+                                        
+                                    {% endif %}
+
+                                    <button class="btn btn-sm btn-outline-dark rounded-pill px-3 fw-bold shadow-sm" 
+                                            data-bs-toggle="modal" 
+                                            data-bs-target="#profileModal{{ patient.id }}">
+                                        Profile
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+
+                        <div class="modal fade" id="profileModal{{ patient.id }}" tabindex="-1" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered">
+                                <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+                                    <div class="modal-header border-0 p-4 text-white d-flex flex-column align-items-center position-relative" 
+                                         style="background: linear-gradient(135deg, #198754 0%, #146c43 100%);">
+                                        <button type="button" class="btn-close btn-close-white position-absolute top-0 end-0 m-3" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        
+                                        <div class="mb-3">
+                                            {% if patient.profile_picture %}
+                                                <img src="{{ patient.profile_picture.url }}" class="rounded-circle border border-4 border-white shadow" width="100" height="100" style="object-fit: cover;">
+                                            {% else %}
+                                                <div class="rounded-circle bg-white text-success d-flex align-items-center justify-content-center shadow border border-4 border-white" style="width: 100px; height: 100px;">
+                                                    <i class="fa-solid fa-user fa-3x"></i>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                        <h4 class="fw-bold mb-0">{{ patient.get_full_name|default:patient.username }}</h4>
+                                        <span class="badge bg-white text-success rounded-pill px-3 mt-2">Patient ID: {{ patient.id }}</span>
+                                    </div>
+
+                                    <div class="modal-body p-4 bg-light">
+                                        <div class="row g-3">
+                                            <div class="col-12">
+                                                <div class="bg-white p-3 rounded-3 border shadow-sm">
+                                                    <h6 class="text-uppercase text-muted small fw-bold mb-3 border-bottom pb-2">
+                                                        {% if patient.appt_status == 'Last Visit' %} Most Recent Visit {% else %} Next Appointment {% endif %}
+                                                    </h6>
+                                                    <div class="d-flex justify-content-between align-items-center">
+                                                        <div><small class="text-muted d-block">Date</small><span class="fw-bold text-dark">{{ patient.display_appt.date|date:"M d, Y" }}</span></div>
+                                                        <div><small class="text-muted d-block">Time</small><span class="fw-bold text-dark">{{ patient.display_appt.time|time:"H:i" }}</span></div>
+                                                    </div>
+                                                    <div class="mt-2 pt-2 border-top">
+                                                        <small class="text-muted d-block">Link</small>
+                                                        <a href="{{ patient.display_appt.meeting_link }}" target="_blank" class="text-primary text-decoration-none text-truncate d-block" style="max-width: 250px;">
+                                                            {{ patient.display_appt.meeting_link|default:"Generating..." }}
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-12">
+                                                <label class="small text-muted fw-bold text-uppercase ms-1">Contact Info</label>
+                                                <div class="bg-white p-3 rounded-3 border mt-1 shadow-sm">
+                                                    <p class="mb-2"><i class="fa-solid fa-envelope text-success me-3"></i> {{ patient.email }}</p>
+                                                    <p class="mb-2"><i class="fa-solid fa-phone text-success me-3"></i> {{ patient.phone_number|default:"Not Provided" }}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center py-5">
+                                <h5 class="text-muted">No Patients Found</h5>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

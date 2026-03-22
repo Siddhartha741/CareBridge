@@ -1,0 +1,30 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+<a href="/admin/">{% translate 'Home' %}</a>
+&rsaquo; <a href="/admin/accounts/doctor/">Doctors</a>
+&rsaquo; Bulk Upload
+</div>
+{% endblock %}
+
+{% block content %}
+<div id="content-main">
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div>
+            <fieldset class="module aligned">
+                <h2>Upload Doctors CSV</h2>
+                <div class="form-row">
+                    <p>Please upload a CSV file with headers: <strong>Email, First Name, Last Name, Password, Specialization</strong>.</p>
+                    {{ form.as_p }}
+                </div>
+            </fieldset>
+            <div class="submit-row">
+                <input type="submit" value="Upload" class="default" name="_save">
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}

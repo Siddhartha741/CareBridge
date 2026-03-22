@@ -1,0 +1,287 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container py-5">
+    
+    <a href="{% url 'patient_dashboard' %}" class="btn btn-light text-muted fw-bold rounded-pill mb-4 shadow-sm px-4 hover-lift" style="display: inline-block;">
+        <i class="fa-solid fa-arrow-left me-2"></i>Back to Dashboard
+    </a>
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold text-dark mb-0">Clinical Health Analytics</h2>
+            <p class="text-muted">Comprehensive tracking of your vital lifestyle metrics and medical guidance.</p>
+        </div>
+        <div class="text-end d-none d-md-block">
+            <div class="bg-white px-4 py-2 rounded-pill shadow-sm border">
+                <span class="text-muted small fw-bold text-uppercase me-2">AI Sync Consistency</span>
+                <span class="fs-4 fw-bold text-{% if consistency_rate > 70 %}success{% elif consistency_rate > 40 %}warning{% else %}danger{% endif %}">
+                    {{ consistency_rate }}%
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm rounded-4 h-100" style="background: linear-gradient(135deg, #f0f7ff 0%, #e0edff 100%);">
+                <div class="card-body p-4 text-center">
+                    <h6 class="text-muted small fw-bold text-uppercase mb-2">Logged Avg Sleep</h6>
+                    <h2 class="fw-bold text-primary mb-0">{{ avg_sleep }}<span class="fs-5 text-muted fw-normal"> hrs</span></h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm rounded-4 h-100" style="background: linear-gradient(135deg, #fff0f0 0%, #ffe0e0 100%);">
+                <div class="card-body p-4 text-center">
+                    <h6 class="text-muted small fw-bold text-uppercase mb-2">Logged Avg Stress</h6>
+                    <h2 class="fw-bold text-danger mb-0">{{ avg_stress }}<span class="fs-5 text-muted fw-normal"> /10</span></h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm rounded-4 h-100" style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);">
+                <div class="card-body p-4 text-center">
+                    <h6 class="text-muted small fw-bold text-uppercase mb-2">Logged Avg Wellness</h6>
+                    <h2 class="fw-bold text-success mb-0">{{ avg_wellness }}<span class="fs-5 text-muted fw-normal"> /100</span></h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm rounded-4 h-100" style="background: linear-gradient(135deg, #fffbeb 0%, #fef08a 100%);">
+                <div class="card-body p-4 text-center">
+                    <h6 class="text-muted small fw-bold text-uppercase mb-2">Life Quality Trend</h6>
+                    {% if trend_direction == 'up' %}
+                        <h2 class="fw-bold text-success mb-0"><i class="fa-solid fa-arrow-trend-up me-1"></i>+{{ abs_trend_value }}<span class="fs-5 text-muted fw-normal"> pts</span></h2>
+                    {% elif trend_direction == 'down' %}
+                        <h2 class="fw-bold text-danger mb-0"><i class="fa-solid fa-arrow-trend-down me-1"></i>-{{ abs_trend_value }}<span class="fs-5 text-muted fw-normal"> pts</span></h2>
+                    {% else %}
+                        <h2 class="fw-bold text-secondary mb-0"><i class="fa-solid fa-minus me-1"></i>0<span class="fs-5 text-muted fw-normal"> pts</span></h2>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-4">
+        <div class="col-xl-7">
+            <div class="card border-0 shadow-sm rounded-4 h-100 overflow-hidden">
+                <div class="card-header bg-white border-0 pt-4 pb-3 px-4">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                        <div>
+                            <h5 class="fw-bold text-dark mb-1">Interactive Health Chart</h5>
+                            <small class="text-muted fw-bold text-uppercase">Click buttons below to filter data</small>
+                        </div>
+                        
+                        <div class="d-flex flex-wrap gap-2">
+                            <button id="btnWellness" class="btn btn-success btn-sm rounded-pill px-3 shadow-sm fw-bold border-2 active-filter" onclick="toggleData(0, this, 'btn-success', 'btn-outline-success')">
+                                <i class="fa-solid fa-leaf me-1"></i> Wellness
+                            </button>
+                            <button id="btnSleep" class="btn btn-primary btn-sm rounded-pill px-3 shadow-sm fw-bold border-2 active-filter" onclick="toggleData(1, this, 'btn-primary', 'btn-outline-primary')">
+                                <i class="fa-solid fa-bed me-1"></i> Sleep
+                            </button>
+                            <button id="btnStress" class="btn btn-danger btn-sm rounded-pill px-3 shadow-sm fw-bold border-2 active-filter" onclick="toggleData(2, this, 'btn-danger', 'btn-outline-danger')">
+                                <i class="fa-solid fa-wave-square me-1"></i> Stress
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-4 pt-0">
+                    <div style="height: 480px; width: 100%;">
+                        <canvas id="unifiedChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-5 d-flex flex-column gap-4">
+            
+            <div class="card border-0 shadow-sm rounded-4 flex-grow-1" style="border: 2px solid #e9ecef !important; background-color: #ffffff;">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold text-dark mb-1">Doctor's Guidance & Predictions</h5>
+                    <p class="text-muted small mb-4">Personalized clinical insights based on your exact metrics.</p>
+                    
+                    <div class="d-flex flex-column gap-3">
+                        
+                        {% if urgent_msg %}
+                        <div class="d-flex align-items-start">
+                            <div class="bg-danger bg-opacity-10 text-danger rounded-circle p-2 me-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 35px; height: 35px;">
+                                <i class="fa-solid fa-triangle-exclamation"></i>
+                            </div>
+                            <div>
+                                <p class="mb-0 text-dark" style="font-size: 0.95rem; line-height: 1.4;"><strong class="text-danger">URGENT:</strong> {{ urgent_msg }}</p>
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="d-flex align-items-start">
+                            <div class="bg-primary bg-opacity-10 text-primary rounded-circle p-2 me-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 35px; height: 35px;">
+                                <i class="fa-solid fa-lightbulb"></i>
+                            </div>
+                            <div>
+                                <p class="mb-0 text-dark" style="font-size: 0.95rem; line-height: 1.4;"><strong class="text-primary">Clinical Insight:</strong> {{ insight_msg }}</p>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex align-items-start">
+                            <div class="bg-success bg-opacity-10 text-success rounded-circle p-2 me-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 35px; height: 35px;">
+                                <i class="fa-solid fa-chart-line"></i>
+                            </div>
+                            <div>
+                                <p class="mb-0 text-dark" style="font-size: 0.95rem; line-height: 1.4;"><strong class="text-success">Health Prediction:</strong> {{ prediction_msg }}</p>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex align-items-start">
+                            <div class="bg-secondary bg-opacity-10 text-secondary rounded-circle p-2 me-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 35px; height: 35px;">
+                                <i class="fa-solid fa-user-doctor"></i>
+                            </div>
+                            <div>
+                                <p class="mb-0 text-dark" style="font-size: 0.95rem; line-height: 1.4;"><strong class="text-secondary">Recommendation:</strong> {{ rec_msg }}</p>
+                            </div>
+                        </div>
+                        
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-3 flex-grow-1">
+                <div class="col-6">
+                    <div class="card border-0 shadow-sm rounded-4 h-100 bg-white">
+                        <div class="card-body p-4 text-center d-flex flex-column justify-content-center">
+                            <div class="text-primary mb-2"><i class="fa-solid fa-calendar-check fa-2x"></i></div>
+                            <h6 class="fw-bold text-dark mb-1 text-uppercase small">Logged Days</h6>
+                            <h3 class="fw-bold text-dark mb-0">{{ checkins_completed }}<span class="fs-6 text-muted fw-normal"> /30</span></h3>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-6">
+                    <div class="card border-0 shadow-sm rounded-4 h-100 bg-white">
+                        <div class="card-body p-3 d-flex flex-column align-items-center justify-content-center">
+                            <h6 class="fw-bold text-dark mb-2 text-uppercase small">My Records</h6>
+                            {% if total_reports > 0 %}
+                                <div style="height: 80px; width: 80px;">
+                                    <canvas id="recordsChart"></canvas>
+                                </div>
+                            {% else %}
+                                <div class="text-muted mb-2"><i class="fa-regular fa-folder-open fa-2x"></i></div>
+                                <span class="text-muted small">0 Files</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+
+    // --- CHART.JS UNIFIED GRAPH ---
+    const labels = JSON.parse('{{ dates_json|safe }}');
+    const wellnessData = JSON.parse('{{ wellness_json|safe }}');
+    const sleepData = JSON.parse('{{ sleep_json|safe }}');
+    const stressData = JSON.parse('{{ stress_json|safe }}');
+    
+    Chart.defaults.font.family = "'Outfit', sans-serif";
+    Chart.defaults.color = '#6c757d';
+    
+    const ctx = document.getElementById('unifiedChart').getContext('2d');
+    
+    let gradientWellness = ctx.createLinearGradient(0, 0, 0, 400);
+    gradientWellness.addColorStop(0, 'rgba(25, 135, 84, 0.4)'); 
+    gradientWellness.addColorStop(1, 'rgba(25, 135, 84, 0.0)');
+
+    const combinedChart = new Chart(ctx, {
+        type: 'bar', 
+        data: {
+            labels: labels,
+            datasets: [
+                {
+                    type: 'line', label: 'Wellness Score', data: wellnessData,
+                    borderColor: '#198754', backgroundColor: gradientWellness,
+                    borderWidth: 3, pointRadius: 3, fill: true, tension: 0.4, spanGaps: true,
+                    yAxisID: 'yWellness', order: 1
+                },
+                {
+                    type: 'bar', label: 'Hours of Sleep', data: sleepData,
+                    backgroundColor: 'rgba(13, 110, 253, 0.8)', borderRadius: 4,
+                    yAxisID: 'ySleep', order: 3
+                },
+                {
+                    type: 'line', label: 'Stress Level', data: stressData,
+                    borderColor: '#fd7e14', borderWidth: 3, borderDash: [6, 4],
+                    pointBackgroundColor: '#fff', pointBorderColor: '#fd7e14',
+                    pointRadius: 4, tension: 0.3, spanGaps: true,
+                    yAxisID: 'yStress', order: 2
+                }
+            ]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            interaction: { mode: 'index', intersect: false },
+            plugins: { legend: { display: false }, tooltip: { backgroundColor: 'rgba(0,0,0,0.8)', padding: 12 } },
+            scales: {
+                x: { 
+                    grid: { display: false },
+                    ticks: { 
+                        autoSkip: false, // Forces the very last date (Today) to render on the chart!
+                        maxRotation: 45,
+                        minRotation: 45,
+                        font: { size: 10 }
+                    } 
+                },
+                yWellness: { type: 'linear', position: 'left', min: 0, max: 100, grid: { borderDash: [5, 5], color: '#e9ecef' }, title: { display: true, text: 'Wellness Score (0-100)', color: '#198754', font: {weight: 'bold'} } },
+                ySleep: { type: 'linear', position: 'right', min: 0, max: 12, grid: { drawOnChartArea: false }, title: { display: true, text: 'Sleep (Hours)', color: '#0d6efd', font: {weight: 'bold'} } },
+                yStress: { type: 'linear', position: 'right', min: 0, max: 10, grid: { drawOnChartArea: false }, title: { display: true, text: 'Stress (1-10)', color: '#fd7e14', font: {weight: 'bold'} } }
+            }
+        }
+    });
+
+    // --- CUSTOM CLICKABLE BUTTON FILTER LOGIC ---
+    window.toggleData = function(datasetIndex, buttonElement, activeClass, inactiveClass) {
+        const isVisible = combinedChart.isDatasetVisible(datasetIndex);
+        if (isVisible) {
+            combinedChart.hide(datasetIndex);
+            buttonElement.classList.remove(activeClass);
+            buttonElement.classList.add(inactiveClass);
+            buttonElement.classList.remove('active-filter');
+            buttonElement.style.opacity = '0.6'; 
+        } else {
+            combinedChart.show(datasetIndex);
+            buttonElement.classList.remove(inactiveClass);
+            buttonElement.classList.add(activeClass);
+            buttonElement.classList.add('active-filter');
+            buttonElement.style.opacity = '1';
+        }
+    };
+
+    // --- RESTORED MINI MEDICAL RECORDS PIE CHART ---
+    {% if total_reports > 0 %}
+    const docReports = {{ doc_reports }};
+    const patReports = {{ pat_reports }};
+    const ctxRecords = document.getElementById('recordsChart').getContext('2d');
+    new Chart(ctxRecords, {
+        type: 'pie',
+        data: { 
+            labels: ['Docs', 'You'], 
+            datasets: [{ data: [docReports, patReports], backgroundColor: ['#0d6efd', '#fd7e14'], borderWidth: 2, borderColor: '#ffffff' }] 
+        },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: {enabled: true} } }
+    });
+    {% endif %}
+});
+</script>
+
+<style>
+    .hover-lift { transition: transform 0.2s ease; }
+    .hover-lift:hover { transform: translateY(-2px); }
+    .active-filter { transform: scale(1.02); transition: all 0.2s ease; }
+</style>
+{% endblock %}

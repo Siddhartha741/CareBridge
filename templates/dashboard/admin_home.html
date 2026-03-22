@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12 mb-4">
+        <h2>🏥 Hospital Admin Dashboard</h2>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-4">
+        <div class="card text-white bg-primary mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Total Patients</h5>
+                <h1 class="card-text">{{ total_patients }}</h1>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-white bg-success mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Total Doctors</h5>
+                <h1 class="card-text">{{ total_doctors }}</h1>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-white bg-warning mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Total Appointments</h5>
+                <h1 class="card-text">{{ total_appointments }}</h1>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

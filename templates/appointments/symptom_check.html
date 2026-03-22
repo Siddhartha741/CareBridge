@@ -1,0 +1,202 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            
+            {% if ask_severity %}
+            <div class="card border-0 shadow-lg mb-4" style="border-radius: 15px;">
+                <div class="card-header bg-warning text-dark p-4 position-relative">
+                    <h4 class="fw-bold mb-0"><i class="fa-solid fa-scale-balanced me-2"></i> We found multiple issues</h4>
+                    <p class="mb-0">Please rate the severity (1-10) of each to help us prioritize.</p>
+                </div>
+                <div class="card-body p-5">
+                    <form method="POST">
+                        {% csrf_token %}
+                        <input type="hidden" name="severity_rating" value="true">
+                        <input type="hidden" name="original_symptoms" value="{{ symptoms }}">
+                        <input type="hidden" name="conflicting_specs" value="{{ candidates|join:',' }}">
+
+                        {% for spec in candidates %}
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">How severe is your <span class="text-primary">{{ spec }}</span> related problem?</label>
+                            <div class="d-flex align-items-center">
+                                <input type="range" class="form-range me-3" min="1" max="10" step="1" id="range_{{ spec }}" name="rating_{{ spec }}" oninput="document.getElementById('val_{{ spec }}').innerText = this.value">
+                                <span class="badge bg-secondary fs-6" id="val_{{ spec }}" style="width: 40px;">5</span>
+                            </div>
+                            <div class="d-flex justify-content-between text-muted small">
+                                <span>Mild</span>
+                                <span>Severe</span>
+                            </div>
+                        </div>
+                        <hr class="text-muted opacity-25">
+                        {% endfor %}
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-dark w-100 py-2 fw-bold shadow-sm">
+                                Find Specialist <i class="fa-solid fa-arrow-right ms-2"></i>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            {% else %}
+            
+            <div class="card border-0 shadow-lg mb-4" style="border-radius: 15px; overflow: hidden;">
+                <div class="card-header bg-primary text-white p-4 position-relative">
+                    <h3 class="fw-bold mb-0"><i class="fa-solid fa-user-doctor me-2"></i> Symptom Checker</h3>
+                    <p class="mb-0 text-white-50">Describe your health issue to find the best specialist.</p>
+                    
+                    <a href="{% url 'book_appointment' %}" class="btn btn-light btn-sm rounded-pill fw-bold text-primary position-absolute top-50 end-0 translate-middle-y me-4 shadow-sm">
+                        Manual Booking <i class="fa-solid fa-arrow-right ms-1"></i>
+                    </a>
+                </div>
+                
+                <div class="card-body p-5">
+                    <form method="POST">
+                        {% csrf_token %}
+                        <div class="mb-4">
+                            <label class="form-label fw-bold text-uppercase text-secondary small">What are you suffering from?</label>
+                            <textarea name="symptoms" class="form-control form-control-lg bg-light" rows="3" 
+                                      placeholder="e.g. Severe headache, knee fracture..." required>{{ symptoms }}</textarea>
+                        </div>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg rounded-pill fw-bold shadow-sm">
+                                <i class="fa-solid fa-magnifying-glass me-2"></i> Analyze Symptoms
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            {% if is_result %}
+            
+                {% if fallback %}
+                <div class="alert alert-warning border-0 rounded-3 shadow-sm mb-4 d-flex align-items-center">
+                    <i class="fa-solid fa-triangle-exclamation fa-lg me-3"></i>
+                    <div>
+                        <strong>No specific match found.</strong> We have listed our best General Physicians to help you.
+                    </div>
+                </div>
+                {% endif %}
+
+                {% for group in results_groups %}
+                <div class="card border-0 shadow-sm mb-4" style="border-radius: 15px; overflow: hidden;">
+                    
+                    <div class="card-header bg-light border-0 p-3 d-flex justify-content-between align-items-center">
+                        <h5 class="fw-bold text-dark mb-0">
+                            <i class="fa-solid fa-notes-medical text-primary me-2"></i> 
+                            Recommended: <span class="text-primary text-decoration-underline">{{ group.specialization }}</span>
+                        </h5>
+                        {% if forloop.first and not fallback %}
+                        <span class="badge bg-success">Primary Match</span>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="card-body p-0">
+                        <div class="list-group list-group-flush">
+                            {% for doc in group.doctors %}
+                            
+                            <div class="list-group-item border-0 p-3 hover-shadow 
+                                {% if forloop.parentloop.first and forloop.first and not fallback %}bg-warning-subtle border-start border-warning border-5{% endif %}">
+                                
+                                {% if forloop.parentloop.first and forloop.first and not fallback %}
+                                <div class="badge bg-warning text-dark mb-2 shadow-sm"><i class="fa-solid fa-crown me-1"></i> Top Recommendation</div>
+                                {% endif %}
+
+                                <div class="d-flex align-items-center">
+                                    <div class="me-3 position-relative">
+                                        {% if doc.user.profile_picture %}
+                                            <img src="{{ doc.user.profile_picture.url }}" class="rounded-circle border" width="60" height="60" style="object-fit: cover;">
+                                        {% else %}
+                                            <div class="rounded-circle bg-light d-flex align-items-center justify-content-center border" style="width: 60px; height: 60px;">
+                                                <i class="fa-solid fa-user-md fa-2x text-secondary"></i>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <div class="flex-grow-1">
+                                        <div class="d-flex align-items-center mb-1">
+                                            <h5 class="fw-bold mb-0 me-2">Dr. {{ doc.user.first_name }} {{ doc.user.last_name }}</h5>
+                                            
+                                            <button class="btn btn-link p-0 text-decoration-none fav-btn" data-id="{{ doc.id }}" onclick="toggleFav(this, {{ doc.id }})" title="Add to Favorites">
+                                                {% if doc.id in user_favorites %}
+                                                    <i class="fa-solid fa-heart text-danger fa-lg"></i>
+                                                {% else %}
+                                                    <i class="fa-regular fa-heart text-secondary fa-lg"></i>
+                                                {% endif %}
+                                            </button>
+                                        </div>
+                                        <p class="mb-1 text-muted small">
+                                            <span class="badge bg-info text-dark me-2">{{ doc.specialization }}</span>
+                                            <i class="fa-solid fa-star text-warning"></i> <strong>{{ doc.experience_years }} Yrs Exp</strong>
+                                        </p>
+                                        <small class="text-secondary"><i class="fa-solid fa-wallet me-1"></i> Fee: ₹{{ doc.consultation_fee }}</small>
+                                    </div>
+                                    
+                                    <a href="{% url 'book_appointment' %}?doc_id={{ doc.id }}" class="btn btn-success rounded-pill px-4 fw-bold shadow-sm">
+                                        Book Now
+                                    </a>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+
+                {% if not results_groups %}
+                <div class="text-center py-5">
+                    <div class="text-muted mb-3"><i class="fa-regular fa-face-frown-open fa-4x opacity-50"></i></div>
+                    <h5>No specific doctors found.</h5>
+                    <a href="{% url 'book_appointment' %}" class="btn btn-outline-primary mt-2">Go to Manual Booking</a>
+                </div>
+                {% endif %}
+
+            {% endif %}
+            
+            {% endif %} </div>
+    </div>
+</div>
+
+<script>
+function toggleFav(btn, docId) {
+    // Prevent default button behavior
+    event.preventDefault();
+    
+    fetch(`/appointments/toggle-favorite/${docId}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(res => res.json())
+    .then(data => {
+        if(data.status === 'success') {
+            const icon = btn.querySelector('i');
+            if(data.liked) {
+                icon.classList.remove('fa-regular', 'text-secondary');
+                icon.classList.add('fa-solid', 'text-danger');
+            } else {
+                icon.classList.remove('fa-solid', 'text-danger');
+                icon.classList.add('fa-regular', 'text-secondary');
+            }
+        }
+    })
+    .catch(error => console.error('Error:', error));
+}
+</script>
+
+<style>
+    .hover-shadow:hover {
+        background-color: #f8f9fa;
+        transform: translateY(-2px);
+        box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important;
+        transition: all 0.3s ease;
+        z-index: 1;
+    }
+</style>
+{% endblock %}

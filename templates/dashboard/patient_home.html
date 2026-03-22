@@ -1,0 +1,240 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row mb-5">
+        <div class="col-md-12">
+            <div class="card border-0 shadow-sm text-white position-relative overflow-hidden" 
+                 style="background: linear-gradient(135deg, #198754 0%, #146c43 100%); border-radius: 16px;">
+                <div class="position-absolute top-0 end-0 bg-white opacity-10 rounded-circle" 
+                     style="width: 200px; height: 200px; transform: translate(30%, -30%);"></div>
+                
+                <div class="card-body p-5 position-relative">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                        <div>
+                           <h2 class="fw-bold mb-2">
+                               Welcome back, {% if user.first_name %}{{ user.first_name|title }} {{ user.last_name|title }}{% else %}{{ user.username|title }}{% endif %}.
+                           </h2>
+                            <p class="mb-0 opacity-75 fs-5">Your personal health dashboard overview.</p>
+                        </div>
+                        <div>
+                            <a href="{% url 'book_appointment' %}" class="btn btn-light text-success fw-bold shadow-sm px-4 py-3 rounded-pill">
+                                <i class="fa-solid fa-plus me-2"></i>Schedule Appointment
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-5">
+        <div class="col-md-4">
+            <a href="{% url 'patient_upcoming' %}" class="text-decoration-none">
+                <div class="card border-0 shadow-sm h-100 card-hover" style="border-radius: 16px;">
+                    <div class="card-body p-4 d-flex align-items-center">
+                        <div class="icon-box bg-primary bg-opacity-10 text-primary rounded-4 p-4 me-3" style="width: 70px; height: 70px;">
+                            <i class="fa-regular fa-calendar-check fa-xl"></i>
+                        </div>
+                        <div>
+                            <h6 class="text-secondary text-uppercase small fw-bold mb-1" style="letter-spacing: 0.5px;">Upcoming</h6>
+                            <h2 class="fw-bold mb-0 text-dark">{{ upcoming_count }}</h2>
+                        </div>
+                        <div class="ms-auto">
+                            <i class="fa-solid fa-chevron-right text-muted opacity-25"></i>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-md-4">
+            <a href="{% url 'patient_history' %}" class="text-decoration-none">
+                <div class="card border-0 shadow-sm h-100 card-hover" style="border-radius: 16px;">
+                    <div class="card-body p-4 d-flex align-items-center">
+                        <div class="icon-box bg-success bg-opacity-10 text-success rounded-4 p-4 me-3" style="width: 70px; height: 70px;">
+                            <i class="fa-solid fa-clipboard-check fa-xl"></i>
+                        </div>
+                        <div>
+                            <h6 class="text-secondary text-uppercase small fw-bold mb-1" style="letter-spacing: 0.5px;">Completed Visits</h6>
+                            <h2 class="fw-bold mb-0 text-dark">{{ completed_count }}</h2>
+                        </div>
+                        <div class="ms-auto">
+                            <i class="fa-solid fa-chevron-right text-muted opacity-25"></i>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-md-4">
+            <a href="{% url 'patient_reports' %}" class="text-decoration-none">
+                <div class="card border-0 shadow-sm h-100 card-hover" style="border-radius: 16px;">
+                    <div class="card-body p-4 d-flex align-items-center">
+                        <div class="icon-box bg-warning bg-opacity-10 text-warning rounded-4 p-4 me-3" style="width: 70px; height: 70px;">
+                            <i class="fa-solid fa-file-medical fa-xl"></i>
+                        </div>
+                        <div>
+                            <h6 class="text-secondary text-uppercase small fw-bold mb-1" style="letter-spacing: 0.5px;">Medical Reports</h6>
+                            <h2 class="fw-bold mb-0 text-dark">{{ report_count }}</h2>
+                        </div>
+                        <div class="ms-auto">
+                            <i class="fa-solid fa-chevron-right text-muted opacity-25"></i>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm h-100" style="border-radius: 16px;">
+                <div class="card-header bg-white border-bottom py-3 px-4 d-flex justify-content-between align-items-center">
+                    <h5 class="fw-bold mb-0 text-dark">Recent Activity</h5>
+                    <a href="{% url 'patient_history' %}" class="btn btn-sm btn-light rounded-pill px-3 fw-bold text-primary">View History</a>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th class="ps-4 py-3 text-secondary small text-uppercase fw-bold border-0">Doctor</th>
+                                    <th class="py-3 text-secondary small text-uppercase fw-bold border-0">Date</th>
+                                    <th class="py-3 text-secondary small text-uppercase fw-bold border-0">Status</th>
+                                    <th class="pe-4 py-3 text-secondary small text-uppercase fw-bold border-0 text-end">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for appointment in recent_activity %} <tr>
+                                    <td class="ps-4 py-3 border-bottom-0">
+                                        <div class="d-flex align-items-center">
+                                            <div class="bg-light rounded-circle border d-flex justify-content-center align-items-center text-secondary fw-bold small me-3" style="width: 40px; height: 40px;">
+                                                <i class="fa-solid fa-user-doctor"></i>
+                                            </div>
+                                            <div>
+                                                <p class="fw-bold mb-0 text-dark small">Dr. {{ appointment.doctor.user.first_name }} {{ appointment.doctor.user.last_name }}</p>
+                                                <small class="text-muted" style="font-size: 0.75rem;">{{ appointment.doctor.specialization|default:appointment.doctor.department|title }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+
+                                    <td class="border-bottom-0">
+                                        <span class="text-dark fw-medium small">{{ appointment.date|date:"M d" }}</span><br>
+                                        <span class="text-muted smaller">{{ appointment.time|time:"g:i A" }}</span>
+                                    </td>
+
+                                    <td class="border-bottom-0">
+                                        {% if appointment.status == 'completed' %}
+                                            <span class="badge bg-success bg-opacity-10 text-success border border-success px-2 rounded-pill">Completed</span>
+                                        {% elif appointment.status == 'cancelled' %}
+                                            <span class="badge bg-danger bg-opacity-10 text-danger border border-danger px-2 rounded-pill">Cancelled</span>
+                                        {% elif appointment.status == 'confirmed' %}
+                                            <span class="badge bg-primary bg-opacity-10 text-primary border border-primary px-2 rounded-pill">Confirmed</span>
+                                        {% elif appointment.status == 'pending' %}
+                                            <span class="badge bg-warning bg-opacity-10 text-dark border border-warning px-2 rounded-pill">Pending</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary bg-opacity-10 text-secondary border px-2 rounded-pill">{{ appointment.status|title }}</span>
+                                        {% endif %}
+                                    </td>
+
+                                    <td class="pe-4 text-end border-bottom-0">
+                                        
+                                        {% if appointment.status == 'confirmed' %}
+                                            <div class="dropdown d-inline-block">
+                                                <button class="btn btn-sm btn-outline-secondary dropdown-toggle rounded-pill px-3" type="button" data-bs-toggle="dropdown">
+                                                    Options
+                                                </button>
+                                                <ul class="dropdown-menu shadow border-0 p-2">
+                                                    <li><a class="dropdown-item small rounded-2 text-success" href="#"><i class="fa-solid fa-video me-2"></i>Join Video Call</a></li>
+                                                    <li><hr class="dropdown-divider"></li>
+                                                    <li><a class="dropdown-item small rounded-2 text-danger" href="{% url 'cancel_appointment' appointment.id %}"><i class="fa-solid fa-times me-2"></i>Cancel</a></li>
+                                                </ul>
+                                            </div>
+
+                                        {% elif appointment.status == 'pending' %}
+                                            <a href="{% url 'cancel_appointment' appointment.id %}" class="btn btn-sm btn-outline-danger rounded-pill px-3">
+                                                Cancel
+                                            </a>
+
+                                        {% elif appointment.status == 'completed' %}
+                                            <button class="btn btn-sm btn-light border text-muted rounded-pill px-3" disabled>
+                                                <i class="fa-solid fa-check me-1"></i> Done
+                                            </button>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="4" class="text-center py-5 text-muted">
+                                        <i class="fa-solid fa-calendar-xmark fa-2x mb-3 opacity-25"></i>
+                                        <p class="mb-0">No recent activity found.</p>
+                                    </td>
+                                </tr> 
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm h-100" style="border-radius: 16px;">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center mb-4">
+                        <div class="position-relative me-3">
+                            {% if user.profile_picture %}
+                                <img src="{{ user.profile_picture.url }}" 
+                                     class="rounded-circle border shadow-sm" 
+                                     style="width: 60px; height: 60px; object-fit: cover;">
+                            {% else %}
+                                <div class="bg-light rounded-circle border d-flex align-items-center justify-content-center text-primary fw-bold fs-3" 
+                                     style="width: 60px; height: 60px;">
+                                    {{ user.username|first|upper }}
+                                </div>
+                            {% endif %}
+                            <span class="position-absolute bottom-0 end-0 bg-success border border-white rounded-circle p-1"></span>
+                        </div>
+
+                        <div>
+                            <h5 class="fw-bold mb-0 text-dark">{{ user.username|title }}</h5>
+                            <small class="text-muted">{{ user.email }}</small>
+                        </div>
+                    </div>
+
+                    <div class="list-group list-group-flush border-top pt-2">
+                        <div class="list-group-item border-0 px-0 py-2 d-flex justify-content-between">
+                            <span class="text-muted small">Role</span>
+                            <span class="fw-semibold small text-dark">Patient</span>
+                        </div>
+                        <div class="list-group-item border-0 px-0 py-2 d-flex justify-content-between">
+                            <span class="text-muted small">Joined</span>
+                            <span class="fw-semibold small text-dark">{{ user.date_joined|date:"M Y" }}</span>
+                        </div>
+                    </div>
+                    
+                    <a href="{% url 'edit_profile' %}" class="btn btn-outline-secondary w-100 mt-4 rounded-pill">Edit Profile</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Card Hover Effect */
+    .card-hover { transition: all 0.3s ease; }
+    .card-hover:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important; cursor: pointer; }
+    
+    .icon-box { display: flex; align-items: center; justify-content: center; }
+    
+    /* Pulse Animation for Join Button */
+    .pulse-effect { animation: pulse 2s infinite; }
+    @keyframes pulse {
+        0% { box-shadow: 0 0 0 0 rgba(25, 135, 84, 0.7); }
+        70% { box-shadow: 0 0 0 10px rgba(25, 135, 84, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(25, 135, 84, 0); }
+    }
+</style>
+{% endblock %}

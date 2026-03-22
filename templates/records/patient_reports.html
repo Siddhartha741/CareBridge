@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container py-5">
+    
+    <div class="mb-4">
+        <a href="{% url 'patient_dashboard' %}" class="btn btn-white text-dark fw-bold rounded-pill shadow-sm px-4 py-2 border hover-lift" style="background-color: #fff;">
+            <i class="fa-solid fa-arrow-left me-2"></i>Back to Dashboard
+        </a>
+    </div>
+
+    <div class="d-flex align-items-center mb-5">
+        <div class="rounded-circle d-flex align-items-center justify-content-center me-3 shadow-sm" 
+             style="width: 64px; height: 64px; background-color: #d1e7dd; color: #198754;">
+            <i class="fa-solid fa-file-medical fa-2x"></i>
+        </div>
+        <div>
+            <h2 class="fw-bold mb-1 text-dark">Medical Reports</h2>
+            <p class="text-muted mb-0">View your diagnoses, prescriptions, and doctor notes.</p>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        {% for report in reports %}
+        <div class="col-lg-6">
+            <div class="card h-100 border-0 shadow-sm rounded-4 hover-lift" style="transition: transform 0.2s;">
+                
+                <div class="card-header bg-white border-bottom p-4 d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="fw-bold text-dark mb-0">{{ report.diagnosis }}</h5>
+                        <small class="text-muted">
+                            <i class="fa-regular fa-calendar me-1"></i> {{ report.created_at|date:"F d, Y" }}
+                        </small>
+                    </div>
+                    <span class="badge bg-light text-secondary border px-3 py-2 rounded-pill">
+                        <i class="fa-solid fa-user-doctor me-1"></i> Dr. {{ report.doctor.user.last_name }}
+                    </span>
+                </div>
+                
+                <div class="card-body p-4">
+                    <div class="mb-3">
+                        <label class="small text-uppercase fw-bold text-muted" style="font-size: 0.75rem; letter-spacing: 0.5px;">Symptoms</label>
+                        <p class="mb-0 text-dark">{{ report.symptoms|default:"No symptoms recorded." }}</p>
+                    </div>
+
+                    <div class="bg-light p-3 rounded-3 mb-3 border-start border-4 border-success">
+                        <label class="small text-uppercase fw-bold text-success mb-1">
+                            <i class="fa-solid fa-pills me-1"></i> Prescribed Medications
+                        </label>
+                        <p class="mb-0 fw-medium text-dark" style="white-space: pre-line;">{{ report.medications }}</p>
+                    </div>
+
+                    {% if report.doctor_notes %}
+                    <div class="mb-0">
+                        <label class="small text-uppercase fw-bold text-muted" style="font-size: 0.75rem; letter-spacing: 0.5px;">Doctor's Note</label>
+                        <p class="mb-0 text-dark fst-italic">"{{ report.doctor_notes }}"</p>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <div class="card-footer bg-white border-top-0 p-4 pt-0">
+                    <a href="{% url 'report_detail' report.id %}" class="btn btn-outline-success w-100 rounded-pill fw-bold">
+                        View Full Details
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        
+        <div class="col-12 text-center py-5">
+            <div class="mb-3 opacity-25">
+                <i class="fa-regular fa-folder-open fa-4x text-muted"></i>
+            </div>
+            <h5 class="text-muted fw-bold">No reports found</h5>
+            <p class="text-muted">Medical reports will appear here after your doctor completes them.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<style>
+    .hover-lift {
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .hover-lift:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.08) !important;
+    }
+</style>
+{% endblock %}

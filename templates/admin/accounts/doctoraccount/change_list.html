@@ -1,0 +1,11 @@
+{% extends "admin/change_list.html" %}
+{% load i18n %}
+
+{% block object-tools-items %}
+    {{ block.super }}
+    <li>
+        <a href="{% url 'bulk_upload_doctors' %}" class="addlink" style="background-color: #417690; color: white;">
+            Bulk Upload Doctors
+        </a>
+    </li>
+{% endblock %}

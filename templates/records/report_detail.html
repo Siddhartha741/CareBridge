@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="mb-4 d-flex justify-content-between align-items-center">
+    <a href="{% url 'patient_reports' %}" class="btn btn-white text-dark fw-bold rounded-pill shadow-sm px-4 py-2 border hover-lift">
+      <i class="fa-solid fa-arrow-left me-2"></i>Back to My Reports
+    </a>
+  </div>
+
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <div class="card border-0 shadow-sm rounded-4">
+        <div class="card-header bg-white border-bottom p-4 d-flex justify-content-between align-items-center">
+          <div>
+            <h4 class="fw-bold mb-1 text-dark">
+              <i class="fa-solid fa-file-medical me-2 text-success"></i>{{ report.diagnosis }}
+            </h4>
+            <small class="text-muted">
+              {{ report.created_at|date:"F d, Y" }} &middot;
+              {% if report.doctor %}
+                Dr. {{ report.doctor.user.first_name }} {{ report.doctor.user.last_name }}
+              {% endif %}
+            </small>
+          </div>
+          {% if report.attachment %}
+          <a href="{{ report.attachment.url }}" class="btn btn-outline-success rounded-pill fw-bold" target="_blank" rel="noopener">
+            <i class="fa-solid fa-download me-2"></i>Download File
+          </a>
+          {% endif %}
+        </div>
+
+        <div class="card-body p-4">
+          <div class="mb-3">
+            <label class="small text-uppercase fw-bold text-muted">Symptoms</label>
+            <p class="mb-0 text-dark">{{ report.symptoms|default:"No symptoms recorded." }}</p>
+          </div>
+
+          <div class="mb-3">
+            <label class="small text-uppercase fw-bold text-muted">Medications</label>
+            <p class="mb-0 text-dark" style="white-space: pre-line;">{{ report.medications|default:"No medications listed." }}</p>
+          </div>
+
+          {% if report.lab_tests %}
+          <div class="mb-3">
+            <label class="small text-uppercase fw-bold text-muted">Lab Tests</label>
+            <p class="mb-0 text-dark" style="white-space: pre-line;">{{ report.lab_tests }}</p>
+          </div>
+          {% endif %}
+
+          {% if report.doctor_notes %}
+          <div class="mb-0">
+            <label class="small text-uppercase fw-bold text-muted">Doctor Notes</label>
+            <p class="mb-0 text-dark fst-italic">"{{ report.doctor_notes }}"</p>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

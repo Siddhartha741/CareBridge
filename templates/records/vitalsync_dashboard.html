@@ -1,0 +1,391 @@
+{% extends 'base.html' %} 
+{% load static %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row mb-4">
+        <div class="col-12 text-center">
+            <h2 class="fw-bold" style="color: var(--text-dark);">
+                <i class="fa-solid fa-robot me-2 text-primary" style="color: var(--primary-color) !important;"></i> VitalSync AI Command Center
+            </h2>
+            <p class="text-muted">Bridging clinical reports with lifestyle habits through our Dual-AI Synthesis Engine.</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8 mb-4">
+            <div class="card shadow-sm border-0 h-100 rounded-4">
+                <div class="card-header bg-white border-bottom-0 pt-4 pb-0 rounded-top-4">
+                    <ul class="nav nav-tabs border-bottom-0" id="vitalSyncTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active fw-bold border-0" id="checkin-tab" data-bs-toggle="tab" data-bs-target="#checkin" type="button" role="tab" style="color: var(--primary-dark);">
+                                💬 Journalist AI Agent
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link fw-bold border-0 text-muted" id="upload-tab" data-bs-toggle="tab" data-bs-target="#upload" type="button" role="tab">
+                                📄 Analyst AI Report
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="card-body p-4">
+                    <div class="tab-content" id="vitalSyncTabsContent">
+                        
+                        <div class="tab-pane fade show active" id="checkin" role="tabpanel">
+                            <div class="alert border-0 mb-4 small d-flex align-items-center rounded-3" style="background-color: var(--primary-light); color: var(--primary-dark);">
+                                <i class="fa-solid fa-circle-info me-2"></i>
+                                <span><strong>Agent Status:</strong> Active. I am gathering lifestyle context for your clinical profile.</span>
+                            </div>
+                            
+                            <div id="chat-container" class="mb-3 p-4 chat-box-styling">
+                                {% for chat in checkin.chat_history %}
+                                    <div class="mb-3 d-flex {% if chat.role == 'user' %}justify-content-end{% else %}justify-content-start{% endif %}">
+                                        <div class="shadow-sm chat-bubble {% if chat.role == 'user' %}user-bubble{% else %}ai-bubble{% endif %}">{{ chat.content }}</div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+
+                            <div id="quick-replies" class="mb-3 d-flex flex-wrap gap-2 justify-content-center"></div>
+
+                            <div class="input-group shadow-sm" style="border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0;">
+                                <input type="text" id="chat-input" class="form-control p-3 border-0 bg-white shadow-none" placeholder="Type a custom response or select an option above..." style="font-size: 0.95rem;" {% if checkin.is_completed %}disabled{% endif %}>
+                                <button class="btn px-4 btn-send" id="send-btn" type="button" {% if checkin.is_completed %}disabled{% endif %}>
+                                    <i class="fa-solid fa-paper-plane fa-lg"></i>
+                                </button>
+                            </div>
+                            {% if checkin.is_completed %}
+                                <div class="text-center mt-3 text-success small fw-bold">
+                                    <i class="fa-solid fa-circle-check me-1"></i> Today's lifestyle sync is complete.
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="tab-pane fade" id="upload" role="tabpanel">
+                            <div class="text-center py-5">
+                                <i class="fa-solid fa-file-medical fa-3x text-muted mb-3"></i>
+                                <h5 class="fw-bold" style="color: var(--text-dark);">Clinical Pattern Extraction</h5>
+                                <p class="text-muted small">Upload your lab reports (PDF/Image) for clinical analysis.</p>
+                            </div>
+                            <form method="POST" action="{% url 'upload_report_submit' %}" enctype="multipart/form-data">
+                                {% csrf_token %}
+                                <div class="mb-4 px-4">
+                                    <input class="form-control form-control-lg shadow-sm rounded-3" type="file" name="report_file" required>
+                                </div>
+                                <div class="px-4">
+                                    <button type="submit" class="btn w-100 fw-bold py-3 shadow-sm rounded-3" style="background-color: var(--text-dark); color: white;">
+                                        <i class="fa-solid fa-magnifying-glass-chart me-2"></i>Analyze & Sync Report
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <h5 class="fw-bold mb-3 d-flex align-items-center" style="color: var(--text-dark);">
+                <i class="fa-solid fa-brain me-2" style="color: var(--primary-color);"></i> Synthesis Engine
+            </h5>
+            
+            <ul class="nav nav-pills mb-3 nav-fill bg-white p-1 rounded-3 shadow-sm border" id="insight-pills-tab" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active fw-bold text-dark rounded-3" id="pills-clinical-tab" data-bs-toggle="pill" data-bs-target="#pills-clinical" type="button" role="tab">
+                        <i class="fa-solid fa-file-medical text-danger me-1"></i> Clinical
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link fw-bold text-dark rounded-3" id="pills-lifestyle-tab" data-bs-toggle="pill" data-bs-target="#pills-lifestyle" type="button" role="tab">
+                        <i class="fa-solid fa-leaf text-success me-1"></i> Lifestyle
+                    </button>
+                </li>
+            </ul>
+
+            <div class="tab-content" id="pills-tabContent">
+                <div class="tab-pane fade show active" id="pills-clinical" role="tabpanel">
+                    <div id="clinical-panel" class="insights-panel-styling">
+                        {% for insight in clinical_insights %}
+                            <div class="card shadow-sm border-0 mb-3 insight-card border-start border-4 border-danger rounded-3">
+                                <div class="card-body">
+                                    <h6 class="text-uppercase text-danger small fw-bold mb-3 border-bottom pb-2">
+                                        Analyst AI Report
+                                    </h6>
+                                    <div class="text-dark markdown-content">
+                                        {{ insight.summary_text }}
+                                    </div>
+                                    <hr class="my-3 opacity-25">
+                                    <small class="text-muted"><i class="fa-regular fa-clock me-1"></i> {{ insight.generated_at|date:"M d, Y" }}</small>
+                                </div>
+                            </div>
+                        {% empty %}
+                            <div class="card bg-white border-0 text-center p-5 shadow-sm rounded-4">
+                                <i class="fa-solid fa-file-pdf fa-2x text-muted mb-3"></i>
+                                <p class="text-muted mb-0 small">No clinical reports analyzed yet.<br>Upload a document to begin.</p>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="tab-pane fade" id="pills-lifestyle" role="tabpanel">
+                    <div id="lifestyle-panel" class="insights-panel-styling">
+                        {% for insight in daily_insights %}
+                            <div class="card shadow-sm border-0 mb-3 insight-card border-start border-4 border-success rounded-3">
+                                <div class="card-body">
+                                    <h6 class="text-uppercase text-success small fw-bold mb-3 border-bottom pb-2">
+                                        Journalist AI Summary
+                                    </h6>
+                                    <div class="text-dark markdown-content">
+                                        {{ insight.summary_text }}
+                                    </div>
+                                    <hr class="my-3 opacity-25">
+                                    <small class="text-muted"><i class="fa-regular fa-clock me-1"></i> {{ insight.generated_at|date:"M d, Y" }}</small>
+                                </div>
+                            </div>
+                        {% empty %}
+                            <div id="lifestyle-empty-state" class="card bg-white border-0 text-center p-5 shadow-sm rounded-4">
+                                <i class="fa-solid fa-comments fa-2x text-muted mb-3"></i>
+                                <p class="text-muted mb-0 small">No lifestyle insights generated yet.<br>Chat with the Agent to start.</p>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+<style>
+    /* PREMIUM CHAT UI STYLING */
+    .chat-box-styling {
+        height: 420px;
+        overflow-y: auto;
+        overflow-x: hidden !important; 
+        background-color: #ffffff; 
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        scroll-behavior: smooth;
+    }
+    
+    .chat-bubble {
+        max-width: 75%;
+        padding: 12px 18px; 
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        white-space: pre-wrap; 
+        font-size: 0.95rem;
+        line-height: 1.5;
+        text-align: left; 
+    }
+
+    .ai-bubble {
+        background-color: #f1f5f9; 
+        color: #1e293b;
+        border: 1px solid #e2e8f0;
+        border-radius: 18px 18px 18px 4px; 
+    }
+
+    .user-bubble {
+        background-color: var(--primary-color); 
+        color: #ffffff;
+        border-radius: 18px 18px 4px 18px; 
+        box-shadow: 0 4px 8px rgba(25, 135, 84, 0.15) !important;
+    }
+
+    .option-btn {
+        background-color: #ffffff;
+        color: var(--primary-color);
+        border: 1.5px solid var(--primary-color);
+        border-radius: 24px;
+        padding: 8px 18px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        transition: all 0.2s ease;
+    }
+    .option-btn:hover {
+        background-color: var(--primary-color);
+        color: #ffffff;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 6px rgba(25, 135, 84, 0.2);
+    }
+
+    .btn-send {
+        background-color: var(--primary-color);
+        color: white;
+        border-radius: 0;
+        transition: background-color 0.2s;
+    }
+    .btn-send:hover {
+        background-color: var(--primary-dark);
+        color: white;
+    }
+
+    .insights-panel-styling {
+        max-height: 550px;
+        overflow-y: auto;
+        overflow-x: hidden !important; 
+        padding-right: 8px;
+    }
+
+    .markdown-content { font-size: 0.95rem; word-wrap: break-word; overflow-wrap: break-word; }
+    .markdown-content pre, .markdown-content code { white-space: pre-wrap !important; word-break: break-word !important; overflow-x: hidden !important; background-color: transparent; padding: 0; font-family: inherit; font-size: inherit; color: inherit; }
+    .markdown-content h1, .markdown-content h2 { display: none; }
+    .markdown-content h3 { font-size: 1.05rem; font-weight: 700; color: #2563eb; margin-top: 1.2rem; margin-bottom: 0.6rem; text-transform: uppercase; letter-spacing: 0.5px; }
+    .markdown-content h3:first-child { margin-top: 0; }
+    .markdown-content p { margin-bottom: 0.8rem; line-height: 1.6; color: #334155; }
+    .markdown-content ul { padding-left: 1.5rem; margin-bottom: 1rem; }
+    .markdown-content li { margin-bottom: 0.4rem; color: #334155; line-height: 1.5; }
+    .markdown-content li strong { color: #0f172a; }
+
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    
+    @keyframes fadeInSlideDown {
+        from { opacity: 0; transform: translateY(-15px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+</style>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        document.querySelectorAll('.markdown-content').forEach(function(el) {
+            let cleanText = el.textContent.replace(/^[ \t]+/gm, '');
+            el.innerHTML = marked.parse(cleanText);
+        });
+        
+        extractAndRenderOptions();
+    });
+
+    const chatContainer = document.getElementById('chat-container');
+    const chatInput = document.getElementById('chat-input');
+    const sendBtn = document.getElementById('send-btn');
+    const quickReplies = document.getElementById('quick-replies');
+
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+
+    function extractAndRenderOptions() {
+        const aiBubbles = document.querySelectorAll('.ai-bubble');
+        if (aiBubbles.length === 0) return;
+        
+        const lastBubble = aiBubbles[aiBubbles.length - 1];
+        const text = lastBubble.innerText;
+        
+        if (text.includes("OPTIONS:")) {
+            const parts = text.split("OPTIONS:");
+            lastBubble.innerText = parts[0].trim(); 
+            
+            const options = parts[1].split("|").map(opt => opt.trim());
+            quickReplies.innerHTML = ''; 
+            
+            options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = 'btn option-btn m-1';
+                btn.innerText = opt;
+                btn.onclick = () => sendQuickReply(opt);
+                quickReplies.appendChild(btn);
+            });
+        }
+    }
+
+    function appendMessage(role, text) {
+        const wrapper = document.createElement('div');
+        wrapper.className = `mb-3 d-flex ${role === 'user' ? 'justify-content-end' : 'justify-content-start'}`;
+        wrapper.innerHTML = `<div class="shadow-sm chat-bubble ${role === 'user' ? 'user-bubble' : 'ai-bubble'}">${text}</div>`;
+        chatContainer.appendChild(wrapper);
+        
+        if (role === 'ai') {
+            extractAndRenderOptions(); 
+        }
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+
+    window.sendQuickReply = function(text) {
+        chatInput.value = text;
+        sendBtn.click();
+    };
+
+    sendBtn.onclick = function() {
+        const message = chatInput.value.trim();
+        if (!message) return;
+
+        appendMessage('user', message);
+        chatInput.value = '';
+        quickReplies.innerHTML = ''; 
+
+        fetch("{% url 'daily_checkin_submit' %}", {
+            method: "POST",
+            headers: {
+                "X-CSRFToken": "{{ csrf_token }}",
+                "Content-Type": "application/x-www-form-urlencoded",
+            },
+            body: `message=${encodeURIComponent(message)}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            appendMessage('ai', data.message);
+            
+            if (data.completed) {
+                chatInput.disabled = true;
+                sendBtn.disabled = true;
+                quickReplies.innerHTML = ''; 
+                
+                // BULLETPROOF UI UPDATE: Try to inject HTML, but auto-reload if it fails.
+                if (data.new_summary) {
+                    try {
+                        const lifestylePanel = document.getElementById('lifestyle-panel');
+                        const emptyState = document.getElementById('lifestyle-empty-state');
+                        if (emptyState) emptyState.remove();
+
+                        const today = new Date().toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' });
+                        const parsedContent = marked.parse(data.new_summary.replace(/^[ \t]+/gm, ''));
+
+                        const newCardHTML = `
+                            <div class="card shadow-sm border-0 mb-3 insight-card border-start border-4 border-success rounded-3" style="animation: fadeInSlideDown 0.6s ease-out;">
+                                <div class="card-body">
+                                    <h6 class="text-uppercase text-success small fw-bold mb-3 border-bottom pb-2">
+                                        Journalist AI Summary
+                                    </h6>
+                                    <div class="text-dark markdown-content">
+                                        ${parsedContent}
+                                    </div>
+                                    <hr class="my-3 opacity-25">
+                                    <small class="text-muted"><i class="fa-regular fa-clock me-1"></i> ${today}</small>
+                                </div>
+                            </div>
+                        `;
+                        
+                        lifestylePanel.insertAdjacentHTML('afterbegin', newCardHTML);
+                        
+                        const lifestyleTabBtn = document.getElementById('pills-lifestyle-tab');
+                        const tabInstance = new bootstrap.Tab(lifestyleTabBtn);
+                        tabInstance.show();
+                    } catch (e) {
+                        console.error("DOM Insertion Failed, reloading page.", e);
+                        setTimeout(() => location.reload(), 1000);
+                    }
+                } else {
+                    // Fallback if data string was missing
+                    setTimeout(() => location.reload(), 1000);
+                }
+            }
+        })
+        .catch(err => {
+            console.error("Chat Error:", err);
+            appendMessage('ai', "I encountered a synchronization error. Please try again.");
+            setTimeout(() => location.reload(), 1500);
+        });
+    };
+
+    chatInput.addEventListener("keypress", function(event) {
+        if (event.key === "Enter") {
+            sendBtn.click();
+        }
+    });
+</script>
+{% endblock %}

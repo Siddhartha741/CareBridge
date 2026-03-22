@@ -1,0 +1,135 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container py-5" style="min-height: 80vh;">
+    <div class="row justify-content-center">
+        <div class="col-lg-9">
+            
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-4 border-bottom pb-3 gap-3">
+                <div>
+                    <h1 class="fw-bold text-dark display-6 mb-0">
+                        Notifications 
+                        {% if unread_count > 0 %}
+                            <span class="badge bg-danger rounded-pill fs-6 align-middle ms-2" style="font-size: 0.8rem !important; vertical-align: middle;">{{ unread_count }} New</span>
+                        {% endif %}
+                    </h1>
+                    <p class="text-muted mb-0 mt-2" style="font-size: 1.1rem;">Stay updated with your appointments and health records.</p>
+                </div>
+
+                {% if notifications %}
+                <div class="d-flex gap-2">
+                    <a href="{% url 'mark_all_read' %}" class="btn btn-outline-primary rounded-pill px-3 fw-bold hover-lift">
+                        <i class="fa-solid fa-check-double me-2"></i>Mark All Read
+                    </a>
+                    
+                    <a href="{% url 'clear_all_notifications' %}" class="btn btn-outline-danger rounded-pill px-3 fw-bold hover-lift" 
+                       onclick="return confirm('Are you sure you want to delete ALL notifications? This cannot be undone.');">
+                        <i class="fa-solid fa-trash-can me-2"></i>Clear All
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="d-flex flex-column gap-3">
+                {% for notif in notifications %}
+                    <div class="card shadow-sm border-0 rounded-4 overflow-hidden position-relative hover-scale 
+                                {% if not notif.is_read %}bg-primary bg-opacity-10 border-start border-5 border-primary{% else %}bg-white{% endif %}" 
+                         style="transition: transform 0.2s;">
+                        
+                        <div class="card-body p-4 d-flex align-items-center">
+                            
+                            <div class="flex-shrink-0 me-4">
+                                <div class="rounded-circle d-flex align-items-center justify-content-center shadow-sm bg-white" 
+                                     style="width: 60px; height: 60px;">
+                                    {% if notif.category == 'appointment' %}
+                                        <i class="fa-solid fa-calendar-check fa-2x text-primary"></i>
+                                    {% elif notif.category == 'report' %}
+                                        <i class="fa-solid fa-file-medical fa-2x text-success"></i>
+                                    {% elif notif.category == 'profile' %}
+                                        <i class="fa-solid fa-user-pen fa-2x text-info"></i>
+                                    {% else %}
+                                        <i class="fa-solid fa-bell fa-2x text-warning"></i>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <div class="flex-grow-1">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <h5 class="fw-bold mb-1 text-dark">
+                                        {{ notif.title }}
+                                        {% if not notif.is_read %}
+                                            <span class="badge bg-primary rounded-pill ms-2" style="font-size: 0.7rem; vertical-align: middle;">NEW</span>
+                                        {% endif %}
+                                    </h5>
+                                    <small class="text-muted fw-bold">{{ notif.timestamp|timesince }} ago</small>
+                                </div>
+                                
+                                <p class="mb-0 text-secondary fs-5" style="line-height: 1.5;">{{ notif.message }}</p>
+                            </div>
+
+                            <div class="ms-4 z-index-2">
+                                <a href="{% url 'delete_notification' notif.id %}" 
+                                   class="btn btn-light rounded-circle shadow-sm border text-danger delete-btn" 
+                                   style="width: 45px; height: 45px; display: flex; align-items: center; justify-content: center;" 
+                                   title="Delete Notification">
+                                    <i class="fa-solid fa-trash-can"></i>
+                                </a>
+                            </div>
+                        </div>
+                        
+                        {% if not notif.is_read %}
+                            <a href="{% url 'mark_notification_read' notif.id %}" class="stretched-link" style="z-index: 1;"></a>
+                        {% endif %}
+                    </div>
+                {% empty %}
+                    <div class="text-center py-5 mt-3 bg-white rounded-4 shadow-sm border-0">
+                        <div class="mb-4">
+                            <div class="bg-light rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 120px; height: 120px;">
+                                <i class="fa-regular fa-bell-slash fa-4x text-muted opacity-25"></i>
+                            </div>
+                        </div>
+                        <h3 class="text-muted fw-bold">No notifications yet</h3>
+                        <p class="text-muted">We will let you know when you have appointments or reports.</p>
+                        <a href="{% url 'home' %}" class="btn btn-primary btn-lg rounded-pill px-5 mt-3 fw-bold">Go to Dashboard</a>
+                    </div>
+                {% endfor %}
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Styling Enhancements */
+    .hover-scale:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important;
+    }
+    
+    .hover-lift:hover {
+        transform: translateY(-2px);
+    }
+
+    .fs-5 {
+        font-size: 1.1rem !important;
+    }
+    
+    .bg-primary.bg-opacity-10 {
+        background-color: #f0f7ff !important;
+    }
+
+    /* Important: Makes delete button clickable above the stretched link */
+    .z-index-2 {
+        position: relative;
+        z-index: 5;
+    }
+    
+    .delete-btn:hover {
+        background-color: #dc3545 !important;
+        color: white !important;
+        border-color: #dc3545 !important;
+        transition: 0.2s ease-in-out;
+    }
+</style>
+{% endblock %}

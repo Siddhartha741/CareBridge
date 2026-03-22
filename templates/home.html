@@ -1,0 +1,277 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+
+{% if user.is_authenticated %}
+
+    <section class="bg-white py-5 border-bottom">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-7">
+                    <span class="badge bg-success bg-opacity-10 text-success mb-3 px-3 py-2 rounded-pill fw-bold border border-success border-opacity-25">
+                        <i class="fa-solid fa-circle-check me-2"></i>Logged in as {{ user.role|title }}
+                    </span>
+                    
+                    <h1 class="display-4 fw-bold text-dark mb-3">
+                        Welcome back, <br>
+                        <span class="text-success">{{ user.first_name|default:user.username|title }}!</span>
+                    </h1>
+                    
+                    <p class="lead text-muted mb-4" style="max-width: 600px;">
+                        You are securely connected to the CareBridge Network. Access your medical records, manage appointments, and connect with specialists instantly.
+                    </p>
+                    
+                    <div class="d-flex gap-3">
+                        {% if user.role == 'doctor' %}
+                            <a href="{% url 'doctor_dashboard' %}" class="btn btn-success btn-lg px-4 rounded-pill shadow-sm hover-lift">
+                                <i class="fa-solid fa-user-doctor me-2"></i>Open Doctor Dashboard
+                            </a>
+                        {% elif user.role == 'admin' %}
+                            <a href="{% url 'admin_dashboard' %}" class="btn btn-dark btn-lg px-4 rounded-pill shadow-sm hover-lift">
+                                <i class="fa-solid fa-shield-halved me-2"></i>Admin Control Panel
+                            </a>
+                        {% else %}
+                            <a href="{% url 'patient_dashboard' %}" class="btn btn-success btn-lg px-4 rounded-pill shadow-sm hover-lift">
+                                <i class="fa-solid fa-table-columns me-2"></i>Go to My Dashboard
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="col-lg-5 text-center d-none d-lg-block">
+                     <div class="p-5 bg-light rounded-circle d-inline-block">
+                        <i class="fa-solid fa-hospital-user text-success opacity-50" style="font-size: 8rem;"></i>
+                     </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="py-5 bg-light">
+        <div class="container">
+            <div class="row g-5 align-items-center">
+                <div class="col-md-6">
+                    <div class="p-4 bg-white rounded-4 shadow-sm border-start border-5 border-success h-100">
+                        <h3 class="fw-bold mb-3 text-dark">About Your Portal</h3>
+                        <p class="text-muted">CareBridge is a state-of-the-art Hospital Management System designed to simplify healthcare. We bridge the gap between patients and doctors by providing a seamless, digital experience.</p>
+                        <ul class="list-unstyled mt-3 text-muted">
+                            <li class="mb-2"><i class="fa-solid fa-check text-success me-2"></i>Encrypted Medical Records (HIPAA Compliant)</li>
+                            <li class="mb-2"><i class="fa-solid fa-check text-success me-2"></i>Real-time Appointment Scheduling</li>
+                            <li class="mb-2"><i class="fa-solid fa-check text-success me-2"></i>Instant Digital Prescriptions</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="row g-3">
+                        <div class="col-6">
+                            <div class="p-4 bg-white rounded-4 shadow-sm text-center h-100 hover-lift">
+                                <i class="fa-solid fa-file-medical text-primary fa-2x mb-3"></i>
+                                <h6 class="fw-bold">Digital Records</h6>
+                                <p class="small text-muted mb-0">Paperless history.</p>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="p-4 bg-white rounded-4 shadow-sm text-center h-100 hover-lift">
+                                <i class="fa-solid fa-calendar-check text-success fa-2x mb-3"></i>
+                                <h6 class="fw-bold">Easy Booking</h6>
+                                <p class="small text-muted mb-0">Instant confirmation.</p>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="p-4 bg-white rounded-4 shadow-sm text-center h-100 hover-lift">
+                                <i class="fa-solid fa-shield-halved text-dark fa-2x mb-3"></i>
+                                <h6 class="fw-bold">Secure Data</h6>
+                                <p class="small text-muted mb-0">End-to-end encryption.</p>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="p-4 bg-white rounded-4 shadow-sm text-center h-100 hover-lift">
+                                <i class="fa-solid fa-bell text-warning fa-2x mb-3"></i>
+                                <h6 class="fw-bold">Smart Alerts</h6>
+                                <p class="small text-muted mb-0">Never miss a visit.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+{% else %}
+
+    <div class="hero-section d-flex align-items-center">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-6">
+                    <div class="badge bg-white text-success fw-bold px-3 py-2 rounded-pill mb-4 shadow-sm">
+                        <i class="fa-solid fa-star me-1 text-warning"></i> #1 Rated Hospital Management
+                    </div>
+                    
+                    <h1 class="display-3 fw-bold text-white mb-4" style="letter-spacing: -1px; line-height: 1.1;">
+                        Your Health, <br> 
+                        <span style="color: #d1e7dd;">Our Priority.</span>
+                    </h1>
+                    
+                    <p class="lead text-white opacity-90 mb-5" style="font-weight: 300; max-width: 500px;">
+                        Experience seamless medical care with CareBridge. Secure records, instant booking, and trusted specialists.
+                    </p>
+                    
+                    <div class="d-flex gap-3">
+                        <a href="{% url 'register' %}" class="btn btn-white fw-bold px-4 py-3 rounded-3 shadow-lg hover-lift">
+                            <i class="fa-solid fa-user-plus me-2 text-success"></i>Register Now
+                        </a>
+                        <a href="#portals" class="btn btn-outline-light fw-bold px-4 py-3 rounded-3 hover-lift">
+                            Access Portals
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="col-lg-6 text-center d-none d-lg-block">
+                    <div class="hero-graphic">
+                        <div class="pulse-circle"></div>
+                        <i class="fa-solid fa-heart-pulse fa-8x text-white position-relative" style="z-index: 2;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container" style="margin-top: -80px; position: relative; z-index: 10;">
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="feature-card p-4 bg-white shadow-lg h-100 rounded-4 border-bottom border-4 border-success">
+                    <div class="icon-box bg-green-light text-success mb-3">
+                        <i class="fa-solid fa-user-doctor fa-xl"></i>
+                    </div>
+                    <h5 class="fw-bold text-dark">Expert Doctors</h5>
+                    <p class="text-muted small mb-0">Access 500+ specialists across various departments.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card p-4 bg-white shadow-lg h-100 rounded-4 border-bottom border-4 border-primary">
+                    <div class="icon-box bg-blue-light text-primary mb-3">
+                        <i class="fa-solid fa-file-shield fa-xl"></i>
+                    </div>
+                    <h5 class="fw-bold text-dark">Secure Records</h5>
+                    <p class="text-muted small mb-0">Your medical history is encrypted and accessible only to you.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card p-4 bg-white shadow-lg h-100 rounded-4 border-bottom border-4 border-warning">
+                    <div class="icon-box bg-yellow-light text-warning mb-3">
+                        <i class="fa-solid fa-calendar-check fa-xl"></i>
+                    </div>
+                    <h5 class="fw-bold text-dark">Instant Booking</h5>
+                    <p class="text-muted small mb-0">Schedule appointments in seconds. No phone calls needed.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container py-5 mb-5 mt-5" id="portals">
+        <div class="text-center mb-5">
+            <h6 class="text-success fw-bold text-uppercase ls-2">Get Started</h6>
+            <h2 class="fw-bold text-dark">Choose Your Portal</h2>
+        </div>
+
+        <div class="row justify-content-center g-4">
+            <div class="col-md-5">
+                <div class="portal-card h-100 p-4 border rounded-4 bg-white position-relative overflow-hidden">
+                    <div class="d-flex align-items-center position-relative" style="z-index: 2;">
+                        <div class="flex-shrink-0 bg-success text-white rounded-3 p-3 shadow-sm">
+                            <i class="fa-solid fa-hospital-user fa-2x"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h4 class="fw-bold mb-1 text-dark">Patient Login</h4>
+                            <p class="text-muted small mb-0">For appointments & history.</p>
+                        </div>
+                        <a href="{% url 'patient_login' %}" class="btn btn-success rounded-pill px-4 fw-bold shadow-sm hover-lift">
+                            Login <i class="fa-solid fa-arrow-right ms-2"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-5">
+                <div class="portal-card h-100 p-4 border rounded-4 bg-white position-relative overflow-hidden">
+                    <div class="d-flex align-items-center position-relative" style="z-index: 2;">
+                        <div class="flex-shrink-0 bg-dark text-white rounded-3 p-3 shadow-sm">
+                            <i class="fa-solid fa-user-doctor fa-2x"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h4 class="fw-bold mb-1 text-dark">Doctor Login</h4>
+                            <p class="text-muted small mb-0">For staff & administration.</p>
+                        </div>
+                        <a href="{% url 'staff_login' %}" class="btn btn-dark rounded-pill px-4 fw-bold shadow-sm hover-lift">
+                            Login <i class="fa-solid fa-arrow-right ms-2"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endif %}
+
+<style>
+    /* --- SHARED STYLES --- */
+    .hover-lift { transition: transform 0.2s; }
+    .hover-lift:hover { transform: translateY(-3px); }
+
+    /* --- GUEST HERO STYLES --- */
+    .hero-section {
+        background: linear-gradient(135deg, #198754 0%, #146c43 100%); /* CareBridge Green */
+        padding: 120px 0 160px; 
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .btn-white {
+        background-color: white;
+        color: #198754; /* Green Text */
+        transition: transform 0.2s;
+    }
+    .btn-white:hover {
+        transform: translateY(-3px);
+        background-color: #f8f9fa;
+    }
+
+    /* Icon Boxes */
+    .icon-box {
+        width: 50px;
+        height: 50px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .bg-green-light { background-color: #d1e7dd; }
+    .bg-blue-light { background-color: #cfe2ff; }
+    .bg-yellow-light { background-color: #fff3cd; }
+
+    /* Card Hovers */
+    .feature-card { transition: transform 0.3s ease; }
+    .feature-card:hover { transform: translateY(-10px); }
+
+    .portal-card { transition: border-color 0.3s; }
+    .portal-card:hover { border-color: #198754 !important; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+
+    /* Animation for Hero Graphic */
+    .hero-graphic { position: relative; display: inline-block; }
+    .pulse-circle {
+        position: absolute;
+        top: 50%; left: 50%;
+        width: 300px; height: 300px;
+        background: rgba(255,255,255,0.1);
+        border-radius: 50%;
+        transform: translate(-50%, -50%);
+        animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+        0% { transform: translate(-50%, -50%) scale(0.95); opacity: 0.7; }
+        100% { transform: translate(-50%, -50%) scale(1.2); opacity: 0; }
+    }
+</style>
+{% endblock %}

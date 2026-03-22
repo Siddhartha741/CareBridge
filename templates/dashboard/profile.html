@@ -1,0 +1,474 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm rounded-4">
+                
+                <div class="card-header bg-white border-bottom-0 pt-4 px-4 pb-0">
+                    <div class="d-flex align-items-center">
+                        <a href="{% url 'patient_dashboard' %}" class="btn btn-light rounded-pill px-3 py-2 fw-bold text-muted border me-3 hover-lift">
+                            <i class="fa-solid fa-arrow-left me-2"></i>Dashboard
+                        </a>
+                    </div>
+                    
+                    <h3 class="fw-bold mt-4 mb-2 text-center w-100">My Profile</h3>
+                    
+                    <div class="text-center mb-2">
+                         <span class="badge bg-success bg-opacity-10 text-success border border-success px-3 py-2 rounded-pill">
+                            <i class="fa-solid fa-shield-check me-2"></i>Verified Identity
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="card-body p-5 pt-3">
+                    <form method="POST" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        <div class="text-center mb-5">
+                            <div class="position-relative d-inline-block">
+                                <div class="profile-image-container shadow-sm border">
+                                    {% if user.profile_picture %}
+                                        <img id="profile-preview" src="{{ user.profile_picture.url }}" alt="Profile" style="width: 100%; height: 100%; object-fit: cover;">
+                                    {% else %}
+                                        <div id="profile-placeholder" class="w-100 h-100 d-flex align-items-center justify-content-center bg-light fs-1 fw-bold text-secondary">
+                                            {{ user.username|first|upper }}
+                                        </div>
+                                        <img id="profile-preview" src="" alt="Profile" style="width: 100%; height: 100%; object-fit: cover; display: none;">
+                                    {% endif %}
+                                </div>
+                                <button type="button" class="camera-btn shadow-sm hover-scale" data-bs-toggle="modal" data-bs-target="#photoOptionsModal">
+                                    <i class="fa-solid fa-camera"></i>
+                                </button>
+                            </div>
+                            <input type="file" name="profile_picture" id="id_profile_picture" class="d-none" accept="image/*">
+                            <p class="text-muted small mt-3 mb-0">Update Photo</p>
+                        </div>
+
+                        <div class="p-4 mb-5 bg-light border rounded-3 shadow-sm position-relative overflow-hidden">
+                            <div class="position-absolute top-0 end-0 p-3 opacity-25">
+                                <i class="fa-solid fa-file-contract fa-4x text-secondary"></i>
+                            </div>
+                            <div class="d-flex align-items-center mb-4 border-bottom pb-2">
+                                <div class="bg-dark text-white rounded-circle p-2 me-2 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                                    <i class="fa-solid fa-lock fa-xs"></i>
+                                </div>
+                                <h6 class="fw-bold text-dark mb-0">Official Records (Locked)</h6>
+                            </div>
+                            
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="small fw-bold text-secondary text-uppercase">First Name</label>
+                                    {{ form.first_name }}
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="small fw-bold text-secondary text-uppercase">Last Name</label>
+                                    {{ form.last_name }}
+                                </div>
+                                <div class="col-md-8">
+                                    <label class="small fw-bold text-secondary text-uppercase">Email Address</label>
+                                    {{ form.email }}
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="small fw-bold text-secondary text-uppercase">Patient ID</label>
+                                    {{ form.patient_id }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <h6 class="fw-bold text-dark mb-3 ps-1">Contact Information</h6>
+                        <div class="row g-4 mb-5">
+                            <div class="col-md-12">
+                                <label class="form-label fw-bold small text-secondary">Phone Number</label>
+                                {{ form.phone_number }}
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label fw-bold small text-secondary">Home Address</label>
+                                {{ form.address }}
+                            </div>
+                        </div>
+
+                        <div class="border-top pt-4">
+                            <button class="btn btn-outline-secondary w-100 py-2 d-flex justify-content-between align-items-center rounded-3" type="button" data-bs-toggle="collapse" data-bs-target="#securitySection">
+                                <span class="fw-bold small text-uppercase"><i class="fa-solid fa-lock me-2"></i>Change Password / Username</span>
+                                <i class="fa-solid fa-chevron-down small"></i>
+                            </button>
+                            
+                            <div class="collapse mt-3" id="securitySection">
+                                <div class="card card-body bg-white border rounded-4 shadow-sm p-4">
+                                    
+                                    <div class="mb-4">
+                                        <label class="fw-bold small text-muted">Username</label>
+                                        {{ form.username }}
+                                    </div>
+
+                                    <hr class="text-muted opacity-25">
+
+                                    <div id="otp-container">
+                                        <div class="d-flex align-items-center mb-3">
+                                            <div class="bg-warning bg-opacity-25 text-dark rounded-circle p-2 me-2">
+                                                <i class="fa-solid fa-shield-halved"></i>
+                                            </div>
+                                            <h6 class="fw-bold mb-0">Security Verification</h6>
+                                        </div>
+                                        <p class="small text-muted mb-3">
+                                            Verify your email (<strong>{{ user.email }}</strong>) to proceed.
+                                        </p>
+                                        
+                                        <button type="button" id="sendOtpBtn" class="btn btn-dark rounded-pill fw-bold btn-sm px-4">
+                                            Send OTP Code
+                                        </button>
+
+                                        <div id="otpInputSection" class="mt-4" style="display: none;">
+                                            <label class="small fw-bold text-success mb-2">Enter the 6-digit code:</label>
+                                            
+                                            <div class="d-flex gap-2 justify-content-start mb-3">
+                                                <input type="text" class="otp-box form-control text-center fw-bold fs-5" maxlength="1" pattern="[0-9]" inputmode="numeric">
+                                                <input type="text" class="otp-box form-control text-center fw-bold fs-5" maxlength="1" pattern="[0-9]" inputmode="numeric">
+                                                <input type="text" class="otp-box form-control text-center fw-bold fs-5" maxlength="1" pattern="[0-9]" inputmode="numeric">
+                                                <input type="text" class="otp-box form-control text-center fw-bold fs-5" maxlength="1" pattern="[0-9]" inputmode="numeric">
+                                                <input type="text" class="otp-box form-control text-center fw-bold fs-5" maxlength="1" pattern="[0-9]" inputmode="numeric">
+                                                <input type="text" class="otp-box form-control text-center fw-bold fs-5" maxlength="1" pattern="[0-9]" inputmode="numeric">
+                                            </div>
+
+                                            <button class="btn btn-success fw-bold w-100 rounded-pill mb-3" type="button" id="verifyOtpBtn">
+                                                Verify Code
+                                            </button>
+
+                                            <div class="d-flex justify-content-between align-items-center bg-light p-2 rounded-3 border">
+                                                <span id="timerLabel" class="small text-muted fw-bold ms-2">
+                                                    Resend in <span id="timerCount" class="text-danger">01:00</span>
+                                                </span>
+                                                <a href="javascript:void(0);" id="resendOtpLink" class="small fw-bold text-decoration-none text-secondary me-2" style="pointer-events: none;">
+                                                    Resend OTP
+                                                </a>
+                                            </div>
+
+                                            <div id="otpMsg" class="small fw-bold mt-2 text-center"></div>
+                                        </div>
+                                    </div>
+
+                                    <fieldset id="passwordFields" disabled class="mt-4 opacity-50 transition-all">
+                                        <div class="row g-3">
+                                            <div class="col-md-6">
+                                                <label class="fw-bold small text-muted">New Password</label>
+                                                <div class="input-group">
+                                                    {{ form.new_password }} 
+                                                    <button class="btn btn-outline-secondary toggle-password" type="button" tabindex="-1"><i class="fa-solid fa-eye"></i></button>
+                                                </div>
+                                                <div id="password-feedback" class="small mt-1 fw-bold" style="font-size: 0.75rem; min-height: 18px;"></div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="fw-bold small text-muted">Confirm Password</label>
+                                                <div class="input-group">
+                                                    {{ form.confirm_password }}
+                                                    <button class="btn btn-outline-secondary toggle-password" type="button" tabindex="-1"><i class="fa-solid fa-eye"></i></button>
+                                                </div>
+                                                <div id="match-feedback" class="small mt-1 fw-bold" style="font-size: 0.75rem; min-height: 18px;"></div>
+                                            </div>
+                                        </div>
+                                    </fieldset>
+
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2 mt-5">
+                            <button type="submit" class="btn btn-success btn-lg rounded-pill fw-bold shadow-sm hover-lift" style="background-color: #198754;">Save Updates</button>
+                            <a href="{% url 'patient_dashboard' %}" class="btn btn-light rounded-pill fw-bold text-muted border">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="photoOptionsModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0 overflow-hidden">
+            <div class="modal-header border-bottom-0 pb-0">
+                <h5 class="fw-bold mt-2 ms-2">Update Profile Photo</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4 text-center">
+                <div class="row g-3">
+                    <div class="col-6"><button onclick="triggerFileUpload()" class="btn btn-light w-100 h-100 py-4 rounded-3 border hover-border-primary" data-bs-dismiss="modal"><i class="fa-solid fa-upload fa-xl text-primary mb-2 d-block"></i> Upload</button></div>
+                    <div class="col-6"><button onclick="startWebcam()" class="btn btn-light w-100 h-100 py-4 rounded-3 border hover-border-success"><i class="fa-solid fa-camera fa-xl text-success mb-2 d-block"></i> Selfie</button></div>
+                </div>
+                <div id="camera-interface" class="mt-4" style="display: none;">
+                    <video id="webcam-video" autoplay playsinline class="w-100 rounded-3 mb-2"></video>
+                    <canvas id="webcam-canvas" class="d-none"></canvas>
+                    <button onclick="takeSnapshot()" class="btn btn-success rounded-pill px-4">Capture</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .otp-box { width: 45px; height: 50px; border: 2px solid #e9ecef; border-radius: 8px; transition: all 0.2s; }
+    .otp-box:focus { border-color: #198754; box-shadow: 0 0 0 4px rgba(25, 135, 84, 0.1); transform: translateY(-2px); }
+    .profile-image-container { width: 140px; height: 140px; border-radius: 50%; overflow: hidden; border: 4px solid #fff; background-color: #f8f9fa; }
+    .camera-btn { position: absolute; bottom: 5px; right: 5px; width: 40px; height: 40px; background-color: #198754; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 3px solid #fff; }
+    .hover-lift:hover { transform: translateY(-3px); }
+    .form-control:focus { border-color: #198754; box-shadow: 0 0 0 4px rgba(25, 135, 84, 0.1); }
+    .form-control[readonly] { background-color: #e9ecef !important; color: #212529 !important; font-weight: 600; cursor: not-allowed; }
+    .transition-all { transition: all 0.3s ease; }
+</style>
+
+<script>
+    // ------------------------------------
+    // 1. ADVANCED OTP + TIMER LOGIC
+    // ------------------------------------
+    const sendOtpBtn = document.getElementById('sendOtpBtn');
+    const otpInputSection = document.getElementById('otpInputSection');
+    const verifyOtpBtn = document.getElementById('verifyOtpBtn');
+    const otpMsg = document.getElementById('otpMsg');
+    const passwordFields = document.getElementById('passwordFields');
+    const otpBoxes = document.querySelectorAll('.otp-box');
+    const resendOtpLink = document.getElementById('resendOtpLink');
+    const timerLabel = document.getElementById('timerLabel');
+    const timerCount = document.getElementById('timerCount');
+    
+    let countdownInterval;
+
+    // --- Helper: Start Timer ---
+    function startTimer(duration) {
+        let timer = duration, minutes, seconds;
+        
+        // Reset UI State
+        resendOtpLink.style.pointerEvents = 'none'; // Disable click
+        resendOtpLink.classList.add('text-secondary');
+        resendOtpLink.classList.remove('text-primary');
+        timerLabel.style.display = 'inline'; // Show timer text
+        
+        clearInterval(countdownInterval); // Clear any existing timer
+
+        countdownInterval = setInterval(function () {
+            minutes = parseInt(timer / 60, 10);
+            seconds = parseInt(timer % 60, 10);
+
+            minutes = minutes < 10 ? "0" + minutes : minutes;
+            seconds = seconds < 10 ? "0" + seconds : seconds;
+
+            timerCount.textContent = minutes + ":" + seconds;
+
+            if (--timer < 0) {
+                clearInterval(countdownInterval);
+                // Enable Resend Link
+                timerLabel.style.display = 'none'; // Hide "Resend in..."
+                resendOtpLink.style.pointerEvents = 'auto'; // Enable click
+                resendOtpLink.classList.remove('text-secondary');
+                resendOtpLink.classList.add('text-primary'); // Make it blue
+                resendOtpLink.textContent = "Resend OTP";
+            }
+        }, 1000);
+    }
+
+    // --- Helper: Send OTP Request ---
+    function sendOtpRequest() {
+        // Show Loading State (if button visible)
+        if(sendOtpBtn.style.display !== 'none') {
+            sendOtpBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i>Sending...';
+            sendOtpBtn.disabled = true;
+        } else {
+            // For resend link
+            resendOtpLink.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+        }
+
+        fetch("{% url 'send_security_otp' %}", {
+            method: "POST",
+            headers: {'X-CSRFToken': '{{ csrf_token }}'}
+        })
+        .then(response => response.json())
+        .then(data => {
+            if(data.status === 'success') {
+                otpInputSection.style.display = 'block';
+                sendOtpBtn.style.display = 'none';
+                
+                // Start 60s Timer
+                startTimer(60); 
+                
+                // Restore Resend Text
+                resendOtpLink.textContent = "Resend OTP";
+                
+                otpMsg.innerHTML = '<span class="text-success"><i class="fa-solid fa-envelope me-1"></i> OTP Sent!</span>';
+                otpBoxes[0].focus();
+            } else {
+                sendOtpBtn.innerHTML = 'Retry Sending';
+                sendOtpBtn.disabled = false;
+                otpMsg.innerHTML = '<span class="text-danger">Failed to send.</span>';
+            }
+        })
+        .catch(err => console.error(err));
+    }
+
+    // 1. Initial Send
+    sendOtpBtn.addEventListener('click', sendOtpRequest);
+
+    // 2. Resend Click
+    resendOtpLink.addEventListener('click', function() {
+        sendOtpRequest();
+    });
+
+    // 3. OTP Box Logic (Auto-focus)
+    otpBoxes.forEach((input, index) => {
+        input.addEventListener('input', (e) => {
+            if (e.target.value.length === 1 && index < otpBoxes.length - 1) {
+                otpBoxes[index + 1].focus();
+            }
+        });
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Backspace' && e.target.value === '' && index > 0) {
+                otpBoxes[index - 1].focus();
+            }
+        });
+        input.addEventListener('keypress', function(e) {
+            if (isNaN(String.fromCharCode(e.which))) e.preventDefault();
+        });
+    });
+
+    // 4. Verify OTP Logic
+    verifyOtpBtn.addEventListener('click', function() {
+        let otpCode = '';
+        otpBoxes.forEach(box => otpCode += box.value);
+
+        if(otpCode.length < 6) { 
+            otpMsg.innerHTML = '<span class="text-danger">Please enter all 6 digits.</span>'; 
+            return; 
+        }
+
+        fetch("{% url 'verify_security_otp' %}", {
+            method: "POST",
+            headers: {'X-CSRFToken': '{{ csrf_token }}', 'Content-Type': 'application/json'},
+            body: JSON.stringify({ 'otp': otpCode })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if(data.status === 'success') {
+                passwordFields.disabled = false;
+                passwordFields.classList.remove('opacity-50');
+                document.getElementById('otp-container').innerHTML = `
+                    <div class="alert alert-success py-2 rounded-3 shadow-sm border-success">
+                        <div class="d-flex align-items-center">
+                            <i class="fa-solid fa-circle-check text-success fa-lg me-2"></i>
+                            <div><strong>Identity Verified</strong><br><small>You can now update your password.</small></div>
+                        </div>
+                    </div>`;
+            } else {
+                otpMsg.innerHTML = '<span class="text-danger"><i class="fa-solid fa-xmark me-1"></i> Invalid Code.</span>';
+                otpBoxes.forEach(box => box.value = '');
+                otpBoxes[0].focus();
+            }
+        });
+    });
+
+    // ------------------------------------
+    // 2. TOGGLE PASSWORD VISIBILITY
+    // ------------------------------------
+    document.querySelectorAll('.toggle-password').forEach(button => {
+        button.addEventListener('click', function() {
+            let input = this.previousElementSibling;
+            let icon = this.querySelector('i');
+            if (input.type === "password") {
+                input.type = "text";
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                input.type = "password";
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        });
+    });
+
+    // ------------------------------------
+    // 3. PASSWORD STRENGTH & MATCHING
+    // ------------------------------------
+    const newPass = document.querySelector('input[name="new_password"]');
+    const confirmPass = document.querySelector('input[name="confirm_password"]');
+    const strengthBox = document.getElementById('password-feedback');
+    const matchBox = document.getElementById('match-feedback');
+
+    if (newPass && confirmPass) {
+        newPass.addEventListener('input', function() {
+            const val = this.value;
+            let errors = [];
+            if (val.length === 0) { strengthBox.innerHTML = ""; return; }
+            if (val.length < 8) errors.push("Min 8 chars");
+            if (!/[A-Z]/.test(val)) errors.push("1 Uppercase");
+            if (!/[0-9]/.test(val)) errors.push("1 Number");
+            if (!/[!@#$%^&*]/.test(val)) errors.push("1 Special");
+
+            if (errors.length > 0) {
+                strengthBox.className = "small mt-1 fw-bold text-danger";
+                strengthBox.innerHTML = "Missing: " + errors.join(", ");
+            } else {
+                strengthBox.className = "small mt-1 fw-bold text-success";
+                strengthBox.innerHTML = '<i class="fa-solid fa-check me-1"></i> Strong Password';
+            }
+            if (confirmPass.value.length > 0) checkMatch();
+        });
+
+        confirmPass.addEventListener('input', checkMatch);
+
+        function checkMatch() {
+            const val1 = newPass.value;
+            const val2 = confirmPass.value;
+            if (val2.length === 0) { matchBox.innerHTML = ""; return; }
+            if (val1 === val2) {
+                matchBox.className = "small mt-1 fw-bold text-success";
+                matchBox.innerHTML = '<i class="fa-solid fa-check-double me-1"></i> Passwords Match';
+            } else {
+                matchBox.className = "small mt-1 fw-bold text-danger";
+                matchBox.innerHTML = '<i class="fa-solid fa-xmark me-1"></i> No Match';
+            }
+        }
+    }
+
+    // ------------------------------------
+    // 4. PHOTO UPLOAD & WEBCAM
+    // ------------------------------------
+    function triggerFileUpload() { document.getElementById('id_profile_picture').click(); }
+    document.getElementById('id_profile_picture').addEventListener('change', function(event) {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('profile-preview').src = e.target.result;
+            }
+            reader.readAsDataURL(file);
+        }
+    });
+
+    let stream = null;
+    const video = document.getElementById('webcam-video');
+    const canvas = document.getElementById('webcam-canvas');
+    const modal = document.getElementById('photoOptionsModal');
+
+    async function startWebcam() {
+        document.getElementById('camera-interface').style.display = 'block';
+        try { stream = await navigator.mediaDevices.getUserMedia({ video: true }); video.srcObject = stream; } 
+        catch (err) { alert("Camera access denied."); }
+    }
+
+    function takeSnapshot() {
+        if (!stream) return;
+        canvas.width = video.videoWidth; canvas.height = video.videoHeight;
+        canvas.getContext('2d').drawImage(video, 0, 0);
+        canvas.toBlob(function(blob) {
+            const container = new DataTransfer(); container.items.add(new File([blob], "selfie.jpg", { type: "image/jpeg" }));
+            document.getElementById('id_profile_picture').files = container.files;
+            document.getElementById('profile-preview').src = URL.createObjectURL(blob);
+            stopWebcam();
+            bootstrap.Modal.getInstance(modal).hide();
+        }, 'image/jpeg');
+    }
+
+    function stopWebcam() { if (stream) { stream.getTracks().forEach(track => track.stop()); stream = null; } document.getElementById('camera-interface').style.display = 'none'; }
+    modal.addEventListener('hidden.bs.modal', stopWebcam);
+</script>
+{% endblock %}
